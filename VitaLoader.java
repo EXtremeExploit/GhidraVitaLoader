@@ -21,14 +21,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.esotericsoftware.yamlbeans.YamlReader;
 
 import docking.widgets.filechooser.GhidraFileChooser;
+import docking.widgets.filechooser.GhidraFileChooserMode;
 import generic.continues.RethrowContinuesFactory;
 import ghidra.app.script.GhidraScript;
 import ghidra.app.util.bin.BinaryReader;
@@ -40,7 +46,6 @@ import ghidra.app.util.bin.StructConverterUtil;
 import ghidra.app.util.bin.format.elf.ElfException;
 import ghidra.app.util.bin.format.elf.ElfHeader;
 import ghidra.app.util.opinion.ElfLoader;
-import ghidra.framework.preferences.Preferences;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.CategoryPath;
 import ghidra.program.model.data.DataType;
@@ -905,26 +910,28 @@ public class VitaLoader extends GhidraScript {
 			return;
 		}
 
-		/* NID database choose dialog */
 		GhidraFileChooser fileChooser = new GhidraFileChooser(null);
-		String lastDir = Preferences.getProperty(Preferences.LAST_IMPORT_DIRECTORY);
-		if (lastDir != null)
-			fileChooser.setCurrentDirectory(new File(lastDir));
-		fileChooser.setTitle("Choose NID database YML");
-		fileChooser.setApproveButtonText("Choose NID database file");
+		fileChooser.setFileSelectionMode(GhidraFileChooserMode.DIRECTORIES_ONLY);
+		fileChooser.setTitle("Select vita-headers directory");
 		fileChooser.rescanCurrentDirectory();
 
-		File selectedFile = fileChooser.getSelectedFile();
-		if (selectedFile == null) {
-			Msg.showError(this, null, "VitaLoader", "A NID database is needed!");
+		File selectedDirectory = fileChooser.getSelectedFile();
+		if (selectedDirectory == null) {
 			return;
 		}
 
-		/* Load NID database */
-		YamlReader yamlReader = new YamlReader(new FileReader(selectedFile));
-		YamlNidDatabase dbRaw = yamlReader.read(YamlNidDatabase.class);
+		List<String> files;
+		try (Stream<Path> stream = Files.walk(Paths.get(selectedDirectory.getPath(), "db"))) {
+			files = stream.map(x -> x.toString()).filter(f -> f.endsWith(".yml")).collect(Collectors.toList());
+		}
+
 		NidDatabase db = new NidDatabase();
-		populateNidDatabaseFromYaml(db, dbRaw);
+
+		for (String file : files) {
+			YamlReader yamlReader = new YamlReader(new FileReader(file));
+			YamlNidDatabase dbRaw = yamlReader.read(YamlNidDatabase.class);
+			populateNidDatabaseFromYaml(db, dbRaw);
+		}
 
 		/* Get module info address */
 		MemoryBlock textMemoryBlock = getExecutableMemoryBlock(memory);
