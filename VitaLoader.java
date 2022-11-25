@@ -35,7 +35,6 @@ import com.esotericsoftware.yamlbeans.YamlReader;
 
 import docking.widgets.filechooser.GhidraFileChooser;
 import docking.widgets.filechooser.GhidraFileChooserMode;
-import generic.continues.RethrowContinuesFactory;
 import ghidra.app.script.GhidraScript;
 import ghidra.app.util.bin.BinaryReader;
 import ghidra.app.util.bin.ByteArrayProvider;
@@ -66,6 +65,7 @@ import ghidra.program.model.symbol.SourceType;
 import ghidra.util.Msg;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.InvalidInputException;
+import ghidra.util.StringUtilities;
 
 public class VitaLoader extends GhidraScript {
 	private final short ET_SCE_RELEXEC = (short)0xFE04;
@@ -395,8 +395,10 @@ public class VitaLoader extends GhidraScript {
 
 		elfHeaderMemoryBlock.getBytes(elfHeaderStart, elfHeaderBytes);
 
-		ByteArrayProvider elfHeaderProvider = new ByteArrayProvider(elfHeaderBytes);
-		return ElfHeader.createElfHeader(RethrowContinuesFactory.INSTANCE, elfHeaderProvider);
+		ByteProvider elfHeaderProvider = new ByteArrayProvider(elfHeaderBytes);
+		return new ElfHeader(elfHeaderProvider, msg -> {
+			/* no logging if errorConsumer was null */
+		});
 	}
 
 	private MemoryBlock getExecutableMemoryBlock(Memory memory) {
