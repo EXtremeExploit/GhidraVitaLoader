@@ -65,7 +65,6 @@ import ghidra.program.model.symbol.SourceType;
 import ghidra.util.Msg;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.InvalidInputException;
-import ghidra.util.StringUtilities;
 
 public class VitaLoader extends GhidraScript {
 	private final short ET_SCE_RELEXEC = (short)0xFE04;
@@ -816,8 +815,6 @@ public class VitaLoader extends GhidraScript {
 		BinaryReader reader = new BinaryReader(provider, true);
 		SceModuleInfo moduleInfo = new SceModuleInfo(reader);
 
-		println("Vita module name: " + moduleInfo.name);
-
 		applySceModuleInfoStruct(this, moduleInfoAddress, moduleInfo.name);
 
 		Address exportsTop = block.getStart().add(moduleInfo.export_top);
@@ -834,7 +831,8 @@ public class VitaLoader extends GhidraScript {
 				break;
 			}
 
-			processExports(program, db, memory, block, moduleInfo.name, exportsTop, moduleExports);
+			if(moduleExports.library_name != 0)
+				processExports(program, db, memory, block, moduleInfo.name, exportsTop, moduleExports);
 
 			exportsTop = exportsTop.add(moduleExports.size);
 		}
