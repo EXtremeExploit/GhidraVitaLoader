@@ -6,13 +6,14 @@ VitaLoader script for Ghidra
 2. Download the JAR of the [yamlbeans](https://github.com/EsotericSoftware/yamlbeans/releases) library
 3. Open Ghidra and add the JAR path to Ghidra's _Edit_ -> _Plugin Path..._
 4. Add the script directory to _Window_ -> _Script manager_ -> _Script Directories_ button in the top right
+5. Clone the [vita-headers repo](https://github.com/vitasdk/vita-headers) on your computer
 
 # Usage
 1. Load your favorite ELF
 2. (Optionally parse the [vitasdk](https://vitasdk.org/) headers, see below)
 3. Go to _Window_ -> _Script manager_ (or green play button)
 4. Navigate to the _Vita_ folder and run _VitaLoader.java_
-5. Select the [vitasdk](https://vitasdk.org/)'s [db.yml](https://raw.githubusercontent.com/vitasdk/vita-headers/master/db.yml)
+5. Select the `vita-headers` folder you cloned, the one that contains the `db` folder
 
 # Parsing vitasdk headers
 To take full advantage of this script, I recommend parsing the [vitasdk](https://vitasdk.org/) headers before running it:
